@@ -80,6 +80,10 @@ impl<T, Tag> Arena<T, Tag> {
         }
     }
 
+    pub fn len(&self) -> usize {
+        self.data.len()
+    }
+
     /// Allocate new block
     pub fn push(&mut self, v: T) -> Key<Tag> {
         let key = Key(self.data.len() as _, PhantomData);
@@ -131,6 +135,14 @@ impl<T, Tag> Arena<T, Tag> {
     pub fn shrink(&mut self) {
         self.data.shrink_to_fit();
     }
+
+    pub unsafe fn get_disj_unchecked_mut<const N: usize>(
+        &mut self,
+        keys: [&Key<Tag>; N],
+    ) -> [&mut T; N] {
+        let indices = keys.map(|k| k.0);
+        unsafe { self.data.get_disjoint_unchecked_mut(indices) }
+    }
 }
 
 impl<T, Tag> DynArena<T, Tag> {
@@ -151,6 +163,10 @@ impl<T, Tag> DynArena<T, Tag> {
                 .map(|e| e.version)
                 .unwrap_or_else(|| NonZeroU32::new(1).unwrap()),
         )
+    }
+
+    pub fn len(&self) -> usize {
+        self.data.len() - self.garbage.len()
     }
 
     /// Allocate new block
@@ -215,10 +231,30 @@ impl<T, Tag> DynArena<T, Tag> {
         self.data.iter().filter(|e| e.active).map(|e| &e.data)
     }
 
+    pub fn iter_pairs(&self) -> impl Iterator<Item = (&T, DynKey<Tag>)> {
+        self.data
+            .iter()
+            .enumerate()
+            .filter(|(_, e)| e.active)
+            .map(|(idx, e)| (&e.data, DynKey::new(idx, e.version)))
+    }
+
     pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> {
         self.data
             .iter_mut()
             .filter(|e| e.active)
             .map(|e| &mut e.data)
+    }
+
+    pub unsafe fn get_disj_unchecked_mut<const N: usize>(
+        &mut self,
+        keys: [&DynKey<Tag>; N],
+    ) -> [&mut T; N] {
+        let indices = keys.map(|k| k.index);
+        unsafe {
+            self.data
+                .get_disjoint_unchecked_mut(indices)
+                .map(|e| &mut e.data)
+        }
     }
 }
