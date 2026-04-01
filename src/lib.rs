@@ -30,8 +30,12 @@ impl<T> DynEntry<T> {
         }
     }
 
+    #[track_caller]
     fn update(&mut self, data: T) {
-        self.version = self.version.checked_add(1).unwrap();
+        self.version = self
+            .version
+            .checked_add(1)
+            .expect("Version exceeded maximum value");
         self.active = true;
         self.data = data;
     }
@@ -85,6 +89,7 @@ impl<T, Tag> Arena<T, Tag> {
     }
 
     /// Allocate new block
+    #[track_caller]
     pub fn push(&mut self, v: T) -> Key<Tag> {
         let key = Key(self.data.len() as _, PhantomData);
         self.data.push(v);
@@ -123,10 +128,12 @@ impl<T, Tag> Arena<T, Tag> {
         self.data.get_mut(key.0)
     }
 
+    #[track_caller]
     pub fn get_unchecked(&self, key: &Key<Tag>) -> &T {
         &self.data[key.0]
     }
 
+    #[track_caller]
     pub fn get_mut_unchecked(&mut self, key: &Key<Tag>) -> &mut T {
         &mut self.data[key.0]
     }
@@ -170,6 +177,7 @@ impl<T, Tag> DynArena<T, Tag> {
     }
 
     /// Allocate new block
+    #[track_caller]
     pub fn push(&mut self, v: T) -> DynKey<Tag> {
         match self.garbage.pop() {
             Some(index) => {
@@ -219,10 +227,12 @@ impl<T, Tag> DynArena<T, Tag> {
             .map(|entry| &mut entry.data)
     }
 
+    #[track_caller]
     pub fn get_unchecked(&self, key: &DynKey<Tag>) -> &T {
         &self.data[key.index].data
     }
 
+    #[track_caller]
     pub fn get_mut_unchecked(&mut self, key: &DynKey<Tag>) -> &mut T {
         &mut self.data[key.index].data
     }
