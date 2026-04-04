@@ -88,7 +88,6 @@ impl<T, Tag> Arena<T, Tag> {
         self.data.len()
     }
 
-    /// Allocate new block
     #[track_caller]
     pub fn push(&mut self, v: T) -> Key<Tag> {
         let key = Key(self.data.len() as _, PhantomData);
@@ -149,6 +148,19 @@ impl<T, Tag> Arena<T, Tag> {
     ) -> [&mut T; N] {
         let indices = keys.map(|k| k.0);
         unsafe { self.data.get_disjoint_unchecked_mut(indices) }
+    }
+}
+
+impl<T, Tag> Arena<T, Tag>
+where
+    T: PartialEq,
+{
+    #[track_caller]
+    pub fn push_unique(&mut self, v: T) -> Key<Tag> {
+        if let Some((k, _)) = self.iter_pairs().find(|(_, p_v)| v == **p_v) {
+            return k;
+        }
+        self.push(v)
     }
 }
 
