@@ -63,13 +63,13 @@ impl<T> DynKey<T> {
     }
 }
 
-impl<T> Default for Arena<T> {
+impl<T, Tag> Default for Arena<T, Tag> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> Default for DynArena<T> {
+impl<T, Tag> Default for DynArena<T, Tag> {
     fn default() -> Self {
         Self::new()
     }
