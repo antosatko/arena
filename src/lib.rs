@@ -162,6 +162,14 @@ where
         }
         self.push(v)
     }
+
+    #[track_caller]
+    pub fn push_unique_err(&mut self, v: T) -> Result<Key<Tag>, Key<Tag>> {
+        if let Some((k, _)) = self.iter_pairs().find(|(_, p_v)| v == **p_v) {
+            return Err(k);
+        }
+        Err(self.push(v))
+    }
 }
 
 impl<T, Tag> DynArena<T, Tag> {
