@@ -99,6 +99,10 @@ impl<T, Tag> Arena<T, Tag> {
         self.data.iter()
     }
 
+    pub fn iter_mut(&'_ mut self) -> impl Iterator<Item = &mut T> {
+        self.data.iter_mut()
+    }
+
     pub fn iter_pairs(&'_ self) -> impl Iterator<Item = (Key<Tag>, &T)> {
         self.data
             .iter()
