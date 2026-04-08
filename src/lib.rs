@@ -110,6 +110,13 @@ impl<T, Tag> Arena<T, Tag> {
             .map(|(i, d)| (Key(i as _, PhantomData), d))
     }
 
+    pub fn iter_pairs_mut(&'_ mut self) -> impl Iterator<Item = (Key<Tag>, &mut T)> {
+        self.data
+            .iter_mut()
+            .enumerate()
+            .map(|(i, d)| (Key(i as _, PhantomData), d))
+    }
+
     /// Allocate new block without initialization
     ///
     /// # Safety
