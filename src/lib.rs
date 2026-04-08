@@ -110,6 +110,13 @@ impl<T, Tag> Arena<T, Tag> {
             .map(|(i, d)| (Key(i as _, PhantomData), d))
     }
 
+    pub fn iter_keys(&'_ self) -> impl Iterator<Item = Key<Tag>> {
+        self.data
+            .iter()
+            .enumerate()
+            .map(|(i, _)| Key(i as _, PhantomData))
+    }
+
     pub fn iter_pairs_mut(&'_ mut self) -> impl Iterator<Item = (Key<Tag>, &mut T)> {
         self.data
             .iter_mut()
