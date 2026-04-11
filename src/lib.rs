@@ -131,10 +131,11 @@ impl<T, Tag> Arena<T, Tag> {
     /// The allocated block will be zeroed and using it without initialization
     /// may result in undefined behaviour
     pub unsafe fn empty_alloc(&mut self) -> Key<Tag> {
+        let len = self.data.len();
         self.data
             .push(unsafe { MaybeUninit::zeroed().assume_init() });
 
-        Key(self.data.len() as _, PhantomData)
+        Key(len as _, PhantomData)
     }
 
     pub fn get(&self, key: &Key<Tag>) -> Option<&T> {
