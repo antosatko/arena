@@ -242,7 +242,7 @@ impl<T, Tag> DynArena<T, Tag> {
         }
     }
 
-    pub unsafe fn remove(&mut self, key: &DynKey<Tag>) -> Option<T> {
+    pub fn remove(&mut self, key: &DynKey<Tag>) -> Option<T> {
         self.delete(key);
         if key.index >= self.data.len() || self.data[key.index].version != key.version {
             return None;
@@ -295,6 +295,9 @@ impl<T, Tag> DynArena<T, Tag> {
             .map(|e| &mut e.data)
     }
 
+    /// # Safety
+    ///
+    /// Calling this method with overlapping or out-of-bounds indices is undefined behavior even if the resulting references are not used.
     pub unsafe fn get_disj_unchecked_mut<const N: usize>(
         &mut self,
         keys: [&DynKey<Tag>; N],
