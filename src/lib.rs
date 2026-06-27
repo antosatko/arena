@@ -1,4 +1,4 @@
-use std::{marker::PhantomData, mem::MaybeUninit, num::NonZeroU32};
+use std::{fmt::Debug, marker::PhantomData, mem::MaybeUninit, num::NonZeroU32};
 
 /// Small arena allocator without deletion
 #[derive(Debug, Clone)]
@@ -42,11 +42,11 @@ impl<T> DynEntry<T> {
 }
 
 /// Typed arena value key
-#[derive(Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Key<T>(pub(crate) usize, pub(crate) PhantomData<T>);
 
 /// Typed arena value key for dynamic arena
-#[derive(Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct DynKey<T> {
     pub(crate) index: usize,
     pub(crate) version: NonZeroU32,
@@ -308,5 +308,17 @@ impl<T, Tag> DynArena<T, Tag> {
                 .get_disjoint_unchecked_mut(indices)
                 .map(|e| &mut e.data)
         }
+    }
+}
+
+impl<T> Debug for Key<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Key({})", self.0)
+    }
+}
+
+impl<T> Debug for DynKey<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Key({}.{})", self.index, self.version)
     }
 }
