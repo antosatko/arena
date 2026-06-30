@@ -1,4 +1,10 @@
-use std::{fmt::Debug, marker::PhantomData, mem::MaybeUninit, num::NonZeroU32};
+use std::{
+    fmt::Debug,
+    marker::PhantomData,
+    mem::{ManuallyDrop, MaybeUninit},
+    num::NonZeroU32,
+    ptr::write,
+};
 
 /// Small arena allocator without deletion
 #[derive(Debug, Clone)]
@@ -130,12 +136,25 @@ impl<T, Tag> Arena<T, Tag> {
     ///
     /// The allocated block will be zeroed and using it without initialization
     /// may result in undefined behaviour
+    ///
+    /// use `self.mem_write` for safe insertion
     pub unsafe fn empty_alloc(&mut self) -> Key<Tag> {
         let len = self.data.len();
         self.data
             .push(unsafe { MaybeUninit::zeroed().assume_init() });
 
         Key(len as _, PhantomData)
+    }
+
+    /// Rewrite an uninitialized block
+    ///
+    /// # Safety
+    ///
+    /// Using this method on initialized blocks may result in memory leaks.
+    /// Use only for block allocated using `self.empty_alloc` or `no drop` values
+    pub unsafe fn mem_write(&mut self, key: &Key<Tag>, v: T) {
+        let dst = self.get_mut_unchecked(key) as *mut T;
+        unsafe { write(dst, v) };
     }
 
     pub fn get(&self, key: &Key<Tag>) -> Option<&T> {
