@@ -67,6 +67,16 @@ impl<T> DynKey<T> {
             _pd: PhantomData,
         }
     }
+
+    pub fn id(&self) -> usize {
+        self.index
+    }
+}
+
+impl<T> Key<T> {
+    pub fn id(&self) -> usize {
+        self.0
+    }
 }
 
 impl<T, Tag> Default for Arena<T, Tag> {
